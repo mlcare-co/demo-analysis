@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Readmission Analysis - Visualization Suite</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #f39c12;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        
+        h2 {
+            color: #34495e;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #fff3e0;
+            border-left: 4px solid #f39c12;
+        }
+        
+        .chart-container {
+            margin: 30px 0;
+            padding: 20px;
+            background: #fdfdfd;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        
+        .chart-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .metric-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .insight-box {
+            background: #fff3e0;
+            border-left: 4px solid #f39c12;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        
+        th {
+            background: #e67e22;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>30-Day Readmission Analysis - 500-Bed European Hospital</h1>
+        
+        <div class="insight-box">
+            <strong>Analysis Period:</strong> January 2024 - December 2024<br>
+            <strong>Total Index Discharges:</strong> 15,000 patients<br>
+            <strong>Methodology:</strong> All-cause 30-day readmission tracking with planned readmission exclusions
+        </div>
+
+        <!-- Key Metrics Dashboard -->
+        <h2>Executive Summary Metrics</h2>
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">30-Day Readmission Rate</div>
+                <div class="metric-value">14.2%</div>
+                <div class="metric-label">2,130 readmissions</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Median Time to Readmit</div>
+                <div class="metric-value">11 days</div>
+                <div class="metric-label">post-discharge</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Avoidable Readmissions</div>
+                <div class="metric-value">38%</div>
+                <div class="metric-label">809 cases</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Financial Impact</div>
+                <div class="metric-value">€4.8M</div>
+                <div class="metric-label">unreimbursed costs</div>
+            </div>
+        </div>
+
+        <!-- Chart 1: Monthly Readmission Trend -->
+        <h2>1. Monthly Readmission Rate Trend</h2>
+        <div class="chart-container">
+            <div class="chart-title">30-Day Readmission Rate with Control Limits</div>
+            <div id="readmit-trend-chart"></div>
+        </div>
+
+        <!-- Chart 2: Time to Readmission Distribution -->
+        <h2>2. Time to Readmission Pattern</h2>
+        <div class="chart-container">
+            <div class="chart-title">Days from Discharge to Readmission</div>
+            <div id="time-to-readmit-chart"></div>
+        </div>
+
+        <!-- Chart 3: Department Readmission Rates -->
+        <h2>3. Readmission Rates by Department</h2>
+        <div class="chart-container">
+            <div class="chart-title">Risk-Adjusted Department Performance</div>
+            <div id="department-readmit-chart"></div>
+        </div>
+
+        <!-- Chart 4: Top Readmission Diagnoses -->
+        <h2>4. Primary Diagnoses for Readmissions</h2>
+        <div class="chart-container">
+            <div class="chart-title">Most Common Readmission Reasons</div>
+            <div id="diagnosis-chart"></div>
+        </div>
+
+        <!-- Chart 5: Risk Factor Analysis -->
+        <h2>5. Readmission Risk Factors</h2>
+        <div class="chart-container">
+            <div class="chart-title">Patient Characteristics and Readmission Risk</div>
+            <div id="risk-factors-readmit-chart"></div>
+        </div>
+
+        <!-- Chart 6: Financial Waterfall -->
+        <h2>6. Financial Impact Analysis</h2>
+        <div class="chart-container">
+            <div class="chart-title">Cost Build-up from Readmissions</div>
+            <div id="readmit-waterfall-chart"></div>
+        </div>
+
+        <!-- Chart 7: DRG Readmission Matrix -->
+        <h2>7. Readmission Rate by DRG and Department</h2>
+        <div class="chart-container">
+            <div class="chart-title">High-Risk Case Mix Heatmap</div>
+            <div id="drg-readmit-heatmap"></div>
+        </div>
+
+        <!-- Chart 8: Discharge Disposition Impact -->
+        <h2>8. Readmission by Discharge Destination</h2>
+        <div class="chart-container">
+            <div class="chart-title">Post-Discharge Setting Impact on Readmission Risk</div>
+            <div id="discharge-destination-chart"></div>
+        </div>
+
+        <!-- Chart 9: Physician Scatter -->
+        <h2>9. Physician Readmission Performance (Risk-Adjusted)</h2>
+        <div class="chart-container">
+            <div class="chart-title">Expected vs Actual Readmission Rates by Physician</div>
+            <div id="physician-readmit-scatter"></div>
+        </div>
+
+        <!-- Chart 10: Statistical Significance -->
+        <h2>10. Physician Readmission Rates - Statistical Analysis</h2>
+        <div class="chart-container">
+            <div class="chart-title">Readmission Rates with 95% Confidence Intervals</div>
+            <div id="physician-readmit-caterpillar"></div>
+        </div>
+
+        <!-- Data Table -->
+        <h2>11. Readmission Detail by Department</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Department</th>
+                        <th>Index Discharges</th>
+                        <th>Readmissions</th>
+                        <th>Readmit Rate</th>
+                        <th>Avoidable</th>
+                        <th>Most Common Reason</th>
+                        <th>Financial Impact</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Internal Medicine</td>
+                        <td>3,200</td>
+                        <td>608</td>
+                        <td>19.0%</td>
+                        <td>231</td>
+                        <td>CHF Exacerbation (18%)</td>
+                        <td>€1,459,200</td>
+                    </tr>
+                    <tr>
+                        <td>Cardiology</td>
+                        <td>2,850</td>
+                        <td>456</td>
+                        <td>16.0%</td>
+                        <td>173</td>
+                        <td>Arrhythmia (22%)</td>
+                        <td>€1,094,400</td>
+                    </tr>
+                    <tr>
+                        <td>Pulmonology</td>
+                        <td>1,400</td>
+                        <td>210</td>
+                        <td>15.0%</td>
+                        <td>80</td>
+                        <td>COPD Exacerbation (35%)</td>
+                        <td>€504,000</td>
+                    </tr>
+                    <tr>
+                        <td>General Surgery</td>
+                        <td>1,950</td>
+                        <td>273</td>
+                        <td>14.0%</td>
+                        <td>104</td>
+                        <td>Wound Complications (28%)</td>
+                        <td>€655,200</td>
+                    </tr>
+                    <tr>
+                        <td>Gastroenterology</td>
+                        <td>950</td>
+                        <td>133</td>
+                        <td>14.0%</td>
+                        <td>51</td>
+                        <td>GI Bleeding (24%)</td>
+                        <td>€319,200</td>
+                    </tr>
+                    <tr>
+                        <td>Nephrology</td>
+                        <td>600</td>
+                        <td>78</td>
+                        <td>13.0%</td>
+                        <td>30</td>
+                        <td>Fluid Overload (31%)</td>
+                        <td>€187,200</td>
+                    </tr>
+                    <tr>
+                        <td>Orthopedics</td>
+                        <td>2,100</td>
+                        <td>252</td>
+                        <td>12.0%</td>
+                        <td>96</td>
+                        <td>Joint Infection (19%)</td>
+                        <td>€604,800</td>
+                    </tr>
+                    <tr>
+                        <td>Neurology</td>
+                        <td>1,150</td>
+                        <td>92</td>
+                        <td>8.0%</td>
+                        <td>35</td>
+                        <td>Stroke Recurrence (26%)</td>
+                        <td>€220,800</td>
+                    </tr>
+                    <tr>
+                        <td>Oncology</td>
+                        <td>800</td>
+                        <td>28</td>
+                        <td>3.5%</td>
+                        <td>9</td>
+                        <td>Neutropenic Fever (43%)</td>
+                        <td>€67,200</td>
+                    </tr>
+                    <tr style="font-weight: bold; background: #f0f0f0;">
+                        <td>TOTAL</td>
+                        <td>15,000</td>
+                        <td>2,130</td>
+                        <td>14.2%</td>
+                        <td>809 (38%)</td>
+                        <td>Various</td>
+                        <td>€5,112,000</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="insight-box">
+            <strong>Key Findings:</strong><br>
+            • Internal Medicine shows highest readmission rate at 19.0%, followed by Cardiology at 16.0%<br>
+            • 38% of readmissions classified as potentially avoidable<br>
+            • Median time to readmission is 11 days, with 50% occurring within first 2 weeks<br>
+            • CHF, COPD exacerbations, and wound complications drive majority of readmissions<br>
+            • Patients discharged to SNF have 22% readmission rate vs 12% for home discharges
+        </div>
+
+        <div class="footer">
+            Data Analysis Period: January 2024 - December 2024 | 500-Bed Hospital | 2,130 Readmissions
+        </div>
+    </div>
+
+    <script>
+        // Wait for Plotly to load
+        window.addEventListener('load', function() {
+            
+            // Chart 1: Readmission Rate Trend
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const readmitRates = [14.8, 14.5, 14.3, 14.0, 13.8, 14.1, 14.2, 14.3, 14.2, 14.1, 14.4, 14.5];
+            const centerLine = 14.2;
+            const ucl = 16.5; // Upper control limit
+            const lcl = 11.9; // Lower control limit
+
+            const trendTrace = {
+                x: months,
+                y: readmitRates,
+                name: 'Monthly Readmit Rate',
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: {color: '#f39c12', width: 3},
+                marker: {size: 8}
+            };
+
+            const centerTrace = {
+                x: months,
+                y: new Array(12).fill(centerLine),
+                name: 'Mean (14.2%)',
+                mode: 'lines',
+                line: {color: 'gray', dash: 'dash', width: 2}
+            };
+
+            const uclTrace = {
+                x: months,
+                y: new Array(12).fill(ucl),
+                name: 'UCL',
+                mode: 'lines',
+                line: {color: 'red', dash: 'dot', width: 1}
+            };
+
+            const lclTrace = {
+                x: months,
+                y: new Array(12).fill(lcl),
+                name: 'LCL',
+                mode: 'lines',
+                line: {color: 'green', dash: 'dot', width: 1}
+            };
+
+            const layout1 = {
+                yaxis: {title: 'Readmission Rate (%)', range: [11, 17]},
+                xaxis: {
+                    title: 'Month (2024)',
+                    type: 'category',
+                    categoryorder: 'array',
+                    categoryarray: months,
+                    tickmode: 'linear'
+                },
+                height: 400,
+                hovermode: 'x unified',
+                margin: {l: 60, r: 40, t: 40, b: 60},
+                autosize: true
+            };
+
+            Plotly.newPlot('readmit-trend-chart', [trendTrace, centerTrace, uclTrace, lclTrace], layout1);
+
+            // Chart 2: Time to Readmission
+            const daysToReadmit = [];
+            const readmitCount = [];
+            const cumulativePercent = [];
+            
+            // Generate realistic distribution peaking around day 7-14
+            for(let i = 1; i <= 30; i++) {
+                let count;
+                if(i <= 7) {
+                    count = 40 + i * 15; // Rising quickly
+                } else if(i <= 14) {
+                    count = 145 - (i - 7) * 10; // Peak and decline
+                } else {
+                    count = Math.max(20, 75 - (i - 14) * 3); // Gradual decline
+                }
+                daysToReadmit.push(`Day ${i}`);
+                readmitCount.push(count);
+            }
+            
+            // Calculate cumulative percentage
+            let cumSum = 0;
+            const total = readmitCount.reduce((a, b) => a + b, 0);
+            for(let count of readmitCount) {
+                cumSum += count;
+                cumulativePercent.push((cumSum / total * 100).toFixed(1));
+            }
+
+            const timeTrace1 = {
+                x: daysToReadmit,
+                y: readmitCount,
+                name: 'Daily Readmissions',
+                type: 'bar',
+                marker: {color: '#f39c12'},
+                yaxis: 'y'
+            };
+
+            const timeTrace2 = {
+                x: daysToReadmit,
+                y: cumulativePercent,
+                name: 'Cumulative %',
+                type: 'scatter',
+                mode: 'lines',
+                line: {color: '#2c3e50', width: 3},
+                yaxis: 'y2'
+            };
+
+            const layout2 = {
+                yaxis: {title: 'Number of Readmissions'},
+                yaxis2: {
+                    title: 'Cumulative Percentage',
+                    overlaying: 'y',
+                    side: 'right',
+                    range: [0, 100]
+                },
+                xaxis: {
+                    title: 'Days Post-Discharge',
+                    tickangle: -45,
+                    dtick: 5,
+                    type: 'category'
+                },
+                height: 400,
+                margin: {l: 60, r: 60, t: 40, b: 100},
+                autosize: true
+            };
+
+            Plotly.newPlot('time-to-readmit-chart', [timeTrace1, timeTrace2], layout2);
+
+            // Chart 3: Department Readmission Rates
+            const deptReadmitData = {
+                departments: ['Internal<br>Medicine', 'Cardiology', 'Pulmonology', 'General<br>Surgery', 
+                             'Gastro', 'Nephrology', 'Orthopedics', 'Neurology', 'Oncology'],
+                rates: [19.0, 16.0, 15.0, 14.0, 14.0, 13.0, 12.0, 8.0, 3.5],
+                expected: [17.5, 15.0, 14.5, 12.5, 13.0, 14.0, 10.5, 9.0, 4.0],
+                volume: [3200, 2850, 1400, 1950, 950, 600, 2100, 1150, 800]
+            };
+
+            const deptTrace1 = {
+                x: deptReadmitData.departments,
+                y: deptReadmitData.rates,
+                name: 'Actual Rate',
+                type: 'bar',
+                marker: {color: '#f39c12'},
+                text: deptReadmitData.rates.map(r => `${r}%`),
+                textposition: 'outside'
+            };
+
+            const deptTrace2 = {
+                x: deptReadmitData.departments,
+                y: deptReadmitData.expected,
+                name: 'Expected Rate',
+                type: 'scatter',
+                mode: 'markers',
+                marker: {
+                    size: 10,
+                    color: '#2c3e50',
+                    symbol: 'diamond'
+                }
+            };
+
+            const layout3 = {
+                yaxis: {title: 'Readmission Rate (%)'},
+                xaxis: {
+                    tickangle: -45,
+                    type: 'category',
+                    categoryorder: 'array',
+                    categoryarray: deptReadmitData.departments
+                },
+                height: 450,
+                barmode: 'group',
+                margin: {l: 60, r: 40, t: 40, b: 100},
+                autosize: true
+            };
+
+            Plotly.newPlot('department-readmit-chart', [deptTrace1, deptTrace2], layout3);
+
+            // Chart 4: Top Readmission Diagnoses
+            const diagnosisData = {
+                diagnoses: ['CHF<br>Exacerbation', 'COPD<br>Exacerbation', 'Wound<br>Complications', 
+                           'Arrhythmia', 'Sepsis', 'GI Bleeding', 'Pneumonia', 'AKI', 
+                           'UTI', 'Dehydration'],
+                count: [383, 298, 234, 213, 192, 170, 149, 128, 106, 85],
+                percentage: [18.0, 14.0, 11.0, 10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0]
+            };
+
+            const diagnosisTrace = {
+                x: diagnosisData.count,
+                y: diagnosisData.diagnoses,
+                type: 'bar',
+                orientation: 'h',
+                marker: {
+                    color: diagnosisData.count,
+                    colorscale: [
+                        [0, '#fef5e7'],
+                        [0.5, '#f39c12'],
+                        [1, '#e67e22']
+                    ]
+                },
+                text: diagnosisData.count.map((c, i) => `${c} (${diagnosisData.percentage[i]}%)`),
+                textposition: 'outside',
+                hovertemplate: '%{y}: %{x} cases<extra></extra>'
+            };
+
+            const layout4 = {
+                xaxis: {title: 'Number of Readmissions'},
+                margin: {l: 150, r: 80},
+                height: 450,
+                autosize: true
+            };
+
+            Plotly.newPlot('diagnosis-chart', [diagnosisTrace], layout4);
+
+            // Chart 5: Risk Factor Analysis
+            const riskData = {
+                factors: ['Age 80+', 'Age 65-79', 'Age <65', 'LOS >7 days', 'LOS ≤7 days',
+                          'With HAC', 'No HAC', 'Emergency<br>Admit', 'Elective<br>Admit', 
+                          'High<br>Comorbidity', 'Low<br>Comorbidity'],
+                rates: [22.5, 15.8, 8.2, 18.6, 11.3, 24.2, 13.5, 16.8, 10.2, 19.4, 10.8]
+            };
+
+            const riskTrace = {
+                x: riskData.rates,
+                y: riskData.factors,
+                type: 'bar',
+                orientation: 'h',
+                marker: {
+                    color: riskData.rates,
+                    colorscale: [
+                        [0, '#27ae60'],
+                        [0.5, '#f39c12'],
+                        [1, '#e74c3c']
+                    ],
+                    cmin: 8,
+                    cmax: 25
+                },
+                text: riskData.rates.map(r => `${r}%`),
+                textposition: 'outside'
+            };
+
+            const layout5 = {
+                xaxis: {title: 'Readmission Rate (%)'},
+                margin: {l: 120, r: 60},
+                height: 450,
+                autosize: true
+            };
+
+            Plotly.newPlot('risk-factors-readmit-chart', [riskTrace], layout5);
+
+            // Chart 6: Financial Waterfall
+            const waterfallData = {
+                x: ['Base Cost<br>per Readmit', 'Emergency<br>Care', 'Diagnostics', 'Extended<br>LOS', 
+                    'ICU<br>Utilization', 'Lost<br>Revenue', 'Total Impact<br>per Case'],
+                y: [0, 1200, 800, 1500, 900, 600, 0],
+                measure: ['absolute', 'relative', 'relative', 'relative', 'relative', 'relative', 'total'],
+                text: ['€2,400', '+€1,200', '+€800', '+€1,500', '+€900', '+€600', '€7,400'],
+                textposition: 'outside',
+                connector: {line: {color: 'rgb(63, 63, 63)'}},
+                increasing: {marker: {color: '#f39c12'}},
+                totals: {marker: {color: '#e67e22'}}
+            };
+
+            const waterfallTrace = {
+                type: 'waterfall',
+                orientation: 'v',
+                x: waterfallData.x,
+                y: waterfallData.y,
+                text: waterfallData.text,
+                textposition: waterfallData.textposition,
+                measure: waterfallData.measure,
+                connector: waterfallData.connector,
+                increasing: waterfallData.increasing,
+                totals: waterfallData.totals
+            };
+
+            const layout6 = {
+                yaxis: {title: 'Cost (€)', tickformat: ',.0f'},
+                height: 450,
+                showlegend: false,
+                margin: {l: 60, r: 40, t: 40, b: 100},
+                autosize: true
+            };
+
+            Plotly.newPlot('readmit-waterfall-chart', [waterfallTrace], layout6);
+
+            // Chart 7: DRG-Readmission Heatmap
+            const heatmapData = {
+                z: [
+                    [24.5, 21.2, 18.3, 16.1, 14.2],
+                    [22.8, 19.5, 16.8, 14.9, 12.8],
+                    [18.2, 16.1, 14.3, 12.2, 10.1],
+                    [15.8, 14.2, 12.5, 10.8, 8.9],
+                    [14.5, 12.8, 11.1, 9.2, 7.5]
+                ],
+                x: ['DRG 291<br>(CHF)', 'DRG 190<br>(COPD)', 'DRG 871<br>(Sepsis)', 
+                    'DRG 853<br>(Infection)', 'DRG 378<br>(GI Bleed)'],
+                y: ['Medicine', 'Cardiology', 'Pulmonology', 'Surgery', 'Gastro'],
+                colorscale: [
+                    [0, '#27ae60'],
+                    [0.14, '#f1c40f'],
+                    [0.2, '#e67e22'],
+                    [1, '#c0392b']
+                ],
+                type: 'heatmap',
+                hovertemplate: '%{y}<br>%{x}<br>Readmit Rate: %{z}%<extra></extra>',
+                colorbar: {title: 'Readmit Rate (%)'}
+            };
+
+            const layout7 = {
+                xaxis: {
+                    title: 'High-Volume DRGs',
+                    side: 'top',
+                    type: 'category'
+                },
+                yaxis: {
+                    title: 'Department',
+                    type: 'category'
+                },
+                height: 400,
+                margin: {l: 80, r: 80, t: 100, b: 40},
+                autosize: true
+            };
+
+            Plotly.newPlot('drg-readmit-heatmap', [heatmapData], layout7);
+
+            // Chart 8: Discharge Destination Impact
+            const dischargeDestData = {
+                destinations: ['SNF', 'Home<br>Health', 'Rehab<br>Facility', 'Home<br>Self-Care', 'LTAC', 'Hospice'],
+                readmitRate: [22.0, 18.5, 16.0, 12.0, 8.5, 2.0],
+                volume: [1800, 2400, 1500, 8700, 450, 150],
+                avoidable: [45, 42, 38, 35, 25, 5]
+            };
+
+            const destTrace1 = {
+                x: dischargeDestData.destinations,
+                y: dischargeDestData.readmitRate,
+                name: 'Readmission Rate',
+                type: 'bar',
+                marker: {color: '#f39c12'},
+                yaxis: 'y',
+                text: dischargeDestData.readmitRate.map(r => `${r}%`),
+                textposition: 'outside'
+            };
+
+            const destTrace2 = {
+                x: dischargeDestData.destinations,
+                y: dischargeDestData.avoidable,
+                name: '% Avoidable',
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: {color: '#e74c3c', width: 2},
+                marker: {size: 8},
+                yaxis: 'y2'
+            };
+
+            const layout8 = {
+                yaxis: {
+                    title: 'Readmission Rate (%)',
+                    range: [0, 25]
+                },
+                yaxis2: {
+                    title: '% Avoidable',
+                    overlaying: 'y',
+                    side: 'right',
+                    range: [0, 50]
+                },
+                xaxis: {
+                    title: 'Discharge Destination',
+                    type: 'category',
+                    categoryorder: 'array',
+                    categoryarray: dischargeDestData.destinations
+                },
+                height: 450,
+                margin: {l: 60, r: 60, t: 40, b: 100},
+                autosize: true
+            };
+
+            Plotly.newPlot('discharge-destination-chart', [destTrace1, destTrace2], layout8);
+
+            // Chart 9: Physician Readmit Scatter
+            const scatterData = {
+                physicians: [],
+                expected: [],
+                actual: [],
+                volume: [],
+                specialty: []
+            };
+
+            // Generate 40 physicians with realistic readmission data
+            const specialties = ['Medicine', 'Cardiology', 'Surgery', 'Pulmonology', 'Other'];
+            for(let i = 1; i <= 40; i++) {
+                scatterData.physicians.push(`MD${String(i).padStart(3, '0')}`);
+                const exp = 8 + Math.random() * 12; // Expected readmit rate 8-20%
+                scatterData.expected.push(exp);
+                // Add variation around expected
+                const variation = (Math.random() - 0.5) * 8 + 1;
+                scatterData.actual.push(Math.max(2, exp + variation));
+                scatterData.volume.push(100 + Math.floor(Math.random() * 400));
+                scatterData.specialty.push(specialties[Math.floor(Math.random() * specialties.length)]);
+            }
+
+            // Color by performance
+            const colors = scatterData.actual.map((act, i) => {
+                const diff = act - scatterData.expected[i];
+                if(diff > 4) return '#e74c3c';
+                if(diff > 2) return '#f39c12';
+                return '#27ae60';
+            });
+
+            const scatterTrace = {
+                x: scatterData.expected,
+                y: scatterData.actual,
+                mode: 'markers',
+                marker: {
+                    size: scatterData.volume.map(v => v/10),
+                    color: colors,
+                    opacity: 0.7,
+                    line: {
+                        color: 'white',
+                        width: 1
+                    }
+                },
+                text: scatterData.physicians.map((p, i) => 
+                    `${p}<br>Specialty: ${scatterData.specialty[i]}<br>Volume: ${scatterData.volume[i]} cases<br>Expected: ${scatterData.expected[i].toFixed(1)}%<br>Actual: ${scatterData.actual[i].toFixed(1)}%`
+                ),
+                hovertemplate: '%{text}<extra></extra>',
+                type: 'scatter'
+            };
+
+            // Perfect performance line
+            const perfLine = {
+                x: [5, 25],
+                y: [5, 25],
+                mode: 'lines',
+                line: {color: 'gray', dash: 'dash'},
+                name: 'Perfect Performance',
+                hoverinfo: 'skip'
+            };
+
+            // Control limit lines (±4%)
+            const upperControl = {
+                x: [5, 25],
+                y: [9, 29],
+                mode: 'lines',
+                line: {color: 'orange', dash: 'dot'},
+                name: '+4% Threshold',
+                hoverinfo: 'skip'
+            };
+
+            const lowerControl = {
+                x: [5, 25],
+                y: [1, 21],
+                mode: 'lines',
+                line: {color: 'orange', dash: 'dot'},
+                name: '-4% Threshold',
+                hoverinfo: 'skip'
+            };
+
+            const layout9 = {
+                xaxis: {title: 'Expected Readmission Rate (Risk-Adjusted %)', range: [5, 25]},
+                yaxis: {title: 'Actual Readmission Rate (%)', range: [0, 30]},
+                height: 450,
+                showlegend: false,
+                annotations: [{
+                    x: 23,
+                    y: 28,
+                    text: 'Size = Volume',
+                    showarrow: false,
+                    font: {size: 11, color: 'gray'}
+                }],
+                margin: {l: 60, r: 40, t: 40, b: 60},
+                autosize: true
+            };
+
+            Plotly.newPlot('physician-readmit-scatter', [scatterTrace, perfLine, upperControl, lowerControl], layout9);
+
+            // Chart 10: Physician Caterpillar Plot
+            const caterpillarData = {
+                physicians: [],
+                readmitRate: [],
+                lowerCI: [],
+                upperCI: [],
+                significant: []
+            };
+
+            // Generate data for top 20 physicians by volume
+            const benchmark = 14.2; // Hospital average
+            for(let i = 1; i <= 20; i++) {
+                const physician = `MD${String(i).padStart(3, '0')}`;
+                const rate = 6 + Math.random() * 18; // Readmit rate between 6% and 24%
+                const ciWidth = 2 + Math.random() * 3; // CI width varies by volume
+                
+                caterpillarData.physicians.push(physician);
+                caterpillarData.readmitRate.push(rate);
+                caterpillarData.lowerCI.push(Math.max(0, rate - ciWidth));
+                caterpillarData.upperCI.push(rate + ciWidth);
+                // Significant if CI doesn't overlap with benchmark
+                caterpillarData.significant.push(
+                    (rate - ciWidth > benchmark) || (rate + ciWidth < benchmark)
+                );
+            }
+
+            // Sort by readmit rate
+            const sortedIndices = caterpillarData.readmitRate
+                .map((val, idx) => ({val, idx}))
+                .sort((a, b) => a.val - b.val)
+                .map(obj => obj.idx);
+
+            const caterpillarTrace = {
+                x: sortedIndices.map(i => caterpillarData.readmitRate[i]),
+                y: sortedIndices.map((i, idx) => idx),
+                mode: 'markers',
+                marker: {
+                    size: 8,
+                    color: sortedIndices.map(i => 
+                        caterpillarData.significant[i] ? 
+                        (caterpillarData.readmitRate[i] > benchmark ? '#e74c3c' : '#27ae60') : 
+                        '#95a5a6'
+                    )
+                },
+                name: 'Readmit Rate',
+                error_x: {
+                    type: 'data',
+                    symmetric: false,
+                    arrayminus: sortedIndices.map(i => caterpillarData.readmitRate[i] - caterpillarData.lowerCI[i]),
+                    array: sortedIndices.map(i => caterpillarData.upperCI[i] - caterpillarData.readmitRate[i]),
+                    thickness: 1.5,
+                    width: 0,
+                    color: 'gray'
+                },
+                text: sortedIndices.map(i => 
+                    `${caterpillarData.physicians[i]}<br>Rate: ${caterpillarData.readmitRate[i].toFixed(1)}%<br>95% CI: [${caterpillarData.lowerCI[i].toFixed(1)}%, ${caterpillarData.upperCI[i].toFixed(1)}%]`
+                ),
+                hovertemplate: '%{text}<extra></extra>',
+                type: 'scatter'
+            };
+
+            // Reference line at hospital average
+            const refLine = {
+                x: [benchmark, benchmark],
+                y: [-1, 20],
+                mode: 'lines',
+                line: {color: 'black', dash: 'dash', width: 2},
+                name: 'Hospital Avg (14.2%)',
+                hoverinfo: 'skip'
+            };
+
+            const layout10 = {
+                xaxis: {
+                    title: 'Readmission Rate (%)',
+                    range: [0, 28]
+                },
+                yaxis: {
+                    title: 'Physician (Anonymized)',
+                    tickmode: 'array',
+                    tickvals: Array.from({length: 20}, (_, i) => i),
+                    ticktext: sortedIndices.map(i => caterpillarData.physicians[i]),
+                    automargin: true
+                },
+                height: 500,
+                showlegend: false,
+                margin: {l: 80, r: 40, t: 40, b: 60},
+                annotations: [{
+                    x: 26,
+                    y: 18,
+                    text: 'Red = Significantly Higher<br>Green = Significantly Lower<br>Gray = Not Significant',
+                    showarrow: false,
+                    font: {size: 10},
+                    align: 'left',
+                    bgcolor: 'rgba(255,255,255,0.9)',
+                    bordercolor: 'gray',
+                    borderwidth: 1
+                }],
+                autosize: true
+            };
+
+            Plotly.newPlot('physician-readmit-caterpillar', [caterpillarTrace, refLine], layout10);
+        });
+    </script>
+</body>
+</html>
