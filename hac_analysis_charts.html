@@ -6,6 +6,18 @@
     <title>HAC Analysis - Visualization Suite</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
     <style>
+        @media (max-width: 768px) {
+    .container { padding: 15px; font-size: 14px; }
+    h1 { font-size: 1.6rem; }
+    h2 { font-size: 1.2rem; margin: 20px 0 10px; }
+    .metric-card { padding: 12px; }
+    .metric-value { font-size: 1.8rem; }
+    .chart-container { padding: 10px; margin: 15px 0; }
+    .chart-title { font-size: 0.9rem; }
+    table { font-size: 12px; }
+    td, th { padding: 6px; }
+    .insight-box { padding: 12px; font-size: 0.9rem; }
+        }
         * {
             margin: 0;
             padding: 0;
@@ -421,7 +433,7 @@
                 autosize: true
             };
 
-            Plotly.newPlot('hac-trend-chart', [trendTrace, centerTrace, uclTrace, lclTrace], layout1);
+            Plotly.newPlot('hac-trend-chart', [trendTrace, centerTrace, uclTrace, lclTrace], layout1, {responsive: true, displayModeBar: false});
 
             // Chart 2: HAC Types Distribution
             const hacTypes = {
@@ -492,7 +504,7 @@
                 barmode: 'group'
             };
 
-            Plotly.newPlot('department-hac-chart', [deptTrace1, deptTrace2], layout3);
+            Plotly.newPlot('department-hac-chart', [deptTrace1, deptTrace2], layout3, {responsive: true, displayModeBar: false});
 
             // Chart 4: Impact on LOS
             const losImpactData = {
@@ -525,7 +537,7 @@
                 height: 450
             };
 
-            Plotly.newPlot('los-impact-chart', [losTrace1, losTrace2], layout4);
+            Plotly.newPlot('los-impact-chart', [losTrace1, losTrace2], layout4, {responsive: true, displayModeBar: false});
 
             // Chart 5: Risk Factor Analysis
             const riskData = {
@@ -559,7 +571,7 @@
                 height: 450
             };
 
-            Plotly.newPlot('risk-factors-chart', [riskTrace], layout5);
+            Plotly.newPlot('risk-factors-chart', [riskTrace], layout5, {responsive: true, displayModeBar: false});
 
             // Chart 6: Financial Waterfall
             const waterfallData = {
@@ -593,7 +605,7 @@
                 showlegend: false
             };
 
-            Plotly.newPlot('hac-waterfall-chart', [waterfallTrace], layout6);
+            Plotly.newPlot('hac-waterfall-chart', [waterfallTrace], layout6, {responsive: true, displayModeBar: false});
 
             // Chart 7: DRG-HAC Heatmap
             const heatmapData = {
@@ -624,7 +636,7 @@
                 height: 400
             };
 
-            Plotly.newPlot('drg-hac-heatmap', [heatmapData], layout7);
+            Plotly.newPlot('drg-hac-heatmap', [heatmapData], layout7, {responsive: true, displayModeBar: false});
 
             // Chart 8: Time to HAC
             const timeToHacData = {
@@ -665,7 +677,7 @@
                 height: 400
             };
 
-            Plotly.newPlot('time-to-hac-chart', [timeTrace1, timeTrace2], layout8);
+            Plotly.newPlot('time-to-hac-chart', [timeTrace1, timeTrace2], layout8, {responsive: true, displayModeBar: false});
 
             // Chart 9: Physician HAC Scatter
             const scatterData = {
@@ -760,7 +772,7 @@
                 }]
             };
 
-            Plotly.newPlot('physician-hac-scatter', [scatterTrace, perfLine, upperControl, lowerControl], layout9);
+            Plotly.newPlot('physician-hac-scatter', [scatterTrace, perfLine, upperControl, lowerControl], layout9, {responsive: true, displayModeBar: false});
 
             // Chart 10: Physician Caterpillar Plot
             const caterpillarData = {
@@ -861,7 +873,7 @@
                 }]
             };
 
-            Plotly.newPlot('physician-caterpillar', [caterpillarTrace, refLine], layout10);
+            Plotly.newPlot('physician-caterpillar', [caterpillarTrace, refLine], layout10, {responsive: true, displayModeBar: false});
         });
     </script>
 </body>
