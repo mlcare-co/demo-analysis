@@ -6,6 +6,18 @@
     <title>LOS Analysis - Visualization Suite</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
     <style>
+        @media (max-width: 768px) {
+    .container { padding: 15px; font-size: 14px; }
+    h1 { font-size: 1.6rem; }
+    h2 { font-size: 1.2rem; margin: 20px 0 10px; }
+    .metric-card { padding: 12px; }
+    .metric-value { font-size: 1.8rem; }
+    .chart-container { padding: 10px; margin: 15px 0; }
+    .chart-title { font-size: 0.9rem; }
+    table { font-size: 12px; }
+    td, th { padding: 6px; }
+    .insight-box { padding: 12px; font-size: 0.9rem; }
+        } 
         * {
             margin: 0;
             padding: 0;
@@ -407,7 +419,7 @@
                 height: 400
             };
 
-            Plotly.newPlot('distribution-chart', [trace1, trace2], layout1);
+            Plotly.newPlot('distribution-chart', [trace1, trace2], layout1, {responsive: true, displayModeBar: false});
 
             // Chart 2: Funnel Plot
             const departments = ['Cardiology', 'Orthopedics', 'General Surgery', 'Internal Medicine', 
@@ -464,7 +476,7 @@
                 hovermode: 'closest'
             };
 
-            Plotly.newPlot('funnel-plot', [funnelTrace, upperTrace, lowerTrace, centerLine], layout2);
+            Plotly.newPlot('funnel-plot', [funnelTrace, upperTrace, lowerTrace, centerLine], layout2, {responsive: true, displayModeBar: false});
 
             // Chart 3: Top DRGs
             const drgData = {
@@ -496,7 +508,7 @@
                 height: 400
             };
 
-            Plotly.newPlot('drg-chart', [drgTrace], layout3);
+            Plotly.newPlot('drg-chart', [drgTrace], layout3, {responsive: true, displayModeBar: false});
 
             // Chart 4: Patient Stratification
             const stratData = {
@@ -528,7 +540,7 @@
                 height: 400
             };
 
-            Plotly.newPlot('stratification-chart', [stratTrace1, stratTrace2], layout4);
+            Plotly.newPlot('stratification-chart', [stratTrace1, stratTrace2], layout4, {responsive: true, displayModeBar: false});
 
             // Chart 5: Time Series
             const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -569,7 +581,7 @@
                 height: 400
             };
 
-            Plotly.newPlot('timeseries-chart', [timeTrace1, timeTrace2, benchmarkLine], layout5);
+            Plotly.newPlot('timeseries-chart', [timeTrace1, timeTrace2, benchmarkLine], layout5, {responsive: true, displayModeBar: false});
 
             // Chart 6: Financial Waterfall
             const waterfallData = {
@@ -604,7 +616,7 @@
                 showlegend: false
             };
 
-            Plotly.newPlot('waterfall-chart', [waterfallTrace], layout6);
+            Plotly.newPlot('waterfall-chart', [waterfallTrace], layout6, {responsive: true, displayModeBar: false});
 
             // Chart 7: Heatmap
             const heatmapData = {
@@ -630,7 +642,7 @@
                 height: 400
             };
 
-            Plotly.newPlot('heatmap-chart', [heatmapData], layout7);
+            Plotly.newPlot('heatmap-chart', [heatmapData], layout7, {responsive: true, displayModeBar: false});
 
             // Chart 8: Discharge Patterns
             const dischargeData = {
@@ -665,7 +677,7 @@
                 showlegend: false
             };
 
-            Plotly.newPlot('discharge-pattern', [dischargeTrace, avgLine], layout8);
+            Plotly.newPlot('discharge-pattern', [dischargeTrace, avgLine], layout8, {responsive: true, displayModeBar: false});
 
             // Chart 9: Risk-Adjusted Scatter Plot
             const scatterData = {
@@ -760,7 +772,7 @@
                 }]
             };
 
-            Plotly.newPlot('scatter-plot', [scatterTrace, perfLine, upperControl, lowerControl], layout9);
+            Plotly.newPlot('scatter-plot', [scatterTrace, perfLine, upperControl, lowerControl], layout9, {responsive: true, displayModeBar: false});
 
             // Chart 10: Caterpillar Plot
             const caterpillarData = {
@@ -860,7 +872,7 @@
                 }]
             };
 
-            Plotly.newPlot('caterpillar-plot', [caterpillarTrace, refLine], layout10);
+            Plotly.newPlot('caterpillar-plot', [caterpillarTrace, refLine], layout10, {responsive: true, displayModeBar: false});
         });
     </script>
 </body>
